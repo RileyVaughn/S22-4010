@@ -1,6 +1,12 @@
 package mine
 
-import block "github.com/Univ-Wyo-Education/S22-4010/homework/02/block"
+import (
+	"encoding/hex"
+	"fmt"
+
+	block "github.com/Univ-Wyo-Education/S22-4010/homework/02/block"
+	hash "github.com/Univ-Wyo-Education/S22-4010/homework/02/hash"
+)
 
 // TODO Replace above import with import below (commented out)
 /*
@@ -55,6 +61,21 @@ func MineBlock(bk *block.BlockType, difficulty string) {
 	// the loop to calculate the proof of work (PoW).
 	//
 
-	// TODO: Start coding here.
-	InstructorImplementationMineBlock(bk, difficulty)
+	n := 4
+
+	for {
+
+		seal := block.SerializeForSeal(bk)
+		blockHash := hash.HashOf(seal)
+		hexStr := hex.EncodeToString(blockHash)
+		fmt.Printf("((Mining)) Hash for Block [%s] nonce [%8d]\r", hexStr, bk.Nonce)
+
+		if hexStr[0:n] == difficulty {
+			bk.Seal = blockHash
+			fmt.Printf("((Mining)) Hash for Block [%s] nonce [%8d]\n", hexStr, bk.Nonce)
+			return
+		}
+		bk.Nonce++
+	}
+
 }

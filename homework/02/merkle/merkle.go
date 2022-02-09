@@ -1,13 +1,8 @@
 package merkle
 
-// TODO - uncomment the imports when you build your code.
-/*
 import (
-	"fmt"
-
-	"github.com/Univ-Wyo-Education/S22-4010/homework/02/hash"
+	hash "github.com/Univ-Wyo-Education/S22-4010/homework/02/hash"
 )
-*/
 
 func MerkleHash(data [][]byte) []byte {
 	// Replace this line with your code
@@ -34,5 +29,31 @@ func MerkleHash(data [][]byte) []byte {
 	   6. Return `hTmp[0]`
 	*/
 	// return []byte{0x1} // remove this line - repalce with your own return
-	return InstructorMerkleHash(data)
+
+	hTmp := make([][]byte, len(data))
+
+	for i, block := range data {
+
+		hTmp[i] = hash.HashOf(block)
+	}
+
+	hMid := make([][]byte, 0)
+
+	for len(hTmp) > 1 {
+
+		for i := 0; i < len(hTmp); i = i + 2 {
+
+			if i == len(hTmp)-1 {
+				hMid = append(hMid, hash.Keccak256(hTmp[i]))
+			} else {
+				hMid = append(hMid, hash.Keccak256(hTmp[i], hTmp[i+1]))
+			}
+
+		}
+		hTmp = hMid
+		hMid = make([][]byte, 0)
+
+	}
+	return hTmp[0]
+
 }
