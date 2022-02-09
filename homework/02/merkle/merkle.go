@@ -39,6 +39,10 @@ func MerkleHash(data [][]byte) []byte {
 
 	hMid := make([][]byte, 0)
 
+	if len(hTmp) == 1 {
+		hTmp[0] = hash.Keccak256(hTmp[0])
+	}
+
 	for len(hTmp) > 1 {
 
 		for i := 0; i < len(hTmp); i = i + 2 {
