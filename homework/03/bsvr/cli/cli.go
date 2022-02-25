@@ -215,26 +215,52 @@ func (cc *CLI) SendFundsTransaction(
 	// Pseudo Code:
 	// 1. Calcualte the total value of the account 'from'.  Call this 'tot'.
 	//    You can do this by calling `cc.GetTotalValueForAccount(from)`.
+	tot := cc.GetTotalValueForAccount(from)
+
 	// 2. If the total, `tot` is less than the amount that is to be transfered,
 	//	  `amount` then fail.  Return an error "Insufficient funds".  The person
 	//    is trying to bounce a check.
+	if tot < amount {
+		return nil, fmt.Errorf("Insufficient funds")
+	}
+
 	// 3. Get the list of output tranactions ( ../transactions/tx.go TxOutputType ).
 	//    Call this 'oldOutputs'.
+	oldOutputs := cc.GetNonZeroForAccount(from)
+
 	// 4. Find the set of (may be empty - check for that) values that are pointed
 	//    to in the index - from the 'from' account.  Delete this from the
 	//    index.
+	fromConvertedToString := string(from)
+	delete(cc.BlockIndex.FindValue.AddrIndex, fromConvertedToString)
+
 	// 5. Create a new empty transaction.  Call `transctions.NewEmptyTx` to create.
 	//	  Pass in the 'memo' and the 'from' for this tranaction.
+	newTx := transactions.NewEmptyTx(memo, from)
+
 	// 6. Convert the 'oldOutputs' into a set of new inputs.  The type is
 	//    ../transctions/tx.go TxInputType.  Call `transactions.CreateTxInputsFromOldOutputs`
 	//	  to do this.
+	newInputs := transactions.CreateTxInputsFromOldOutputs(oldOutputs)
+
 	// 7. Save the new inputs in the tx.Input.
+
+	newTx.Input = newInputs
 	// 8. Create the new output for the 'to' address.  Call `transactions.CreateTxOutputWithFunds`.
 	//    Call this `txOut`.    Take `txOut` and append it to the tranaction by calling
 	//    `transactions.AppendTxOutputToTx`.
+
+	txOut := transactions.CreateTxOutputWithFunds(to, amount)
+	transactions.AppendTxOutputToTx(txOut)
 	// 9. Calcualte the amount of "change" - if it is larger than 0 then we owe 'from'
 	//    change.  Create a 2nd tranaction with the change.  Append to the tranaction the
 	//    TxOutputType.
+	change := tot - amount
+	if change > 0 {
+		txChange := transactions.CreateTxOutputWithFunds(from, change)
+		transactions.AppendTxOutputToTx(txChange)
+	}
+
 	// 10. Return
 	//
 
