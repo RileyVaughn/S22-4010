@@ -131,7 +131,8 @@ func main() {
 
 	case "validate-signed-message": // call the server with a signed message.  Verify if the message is properly signed.
 		// Replace the call below with your code - call your own function.
-		// InstructorValidateSignedMessage(*Acct, *Password) //SCR: Does VerifySignature play a role here, and if so, how? //Use DoGet()
+		// InstructorValidateSignedMessage(*Acct, *Password)
+		//SCR: Does VerifySignature play a role here, and if so, how? //Use DoGet()
 		keyFile := getKeyFileFromAcct(*Acct)
 		fmt.Printf("keyFile ->%s<-\n", keyFile)
 		password := getPassphrase(*Password)
@@ -168,19 +169,52 @@ func main() {
 		RequiredOptionInt("amount", *Amount)
 
 		// TODO - Format a JSON message to sign msg =: fmt.Sprintf(`{"from":%q, "to":%q, "amount":%d}`, From, To, Amount) //SCR: Would ReadCfg be used here?
+
 		// TODO - Read in the key file for the From account using getKeyFileFromAcct
+		keyFile := getKeyFileFromAcct(*Acct)
+
 		// TODO - Read in a password for this using getPassphrase
+		password := getPassphrase(*Password)
+
 		// TODO - Call GenerateSignature to sign the message, note the 'msg' returned is the hex version of the original message.
+		buf, err := GenRandBytes(20)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error generating random data: %s\n", err)
+			os.Exit(1)
+		}
+		msg, sig, err := GenerateSignature(keyFile, password, buf)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to sign message. Error:%s\n", err)
+			os.Exit(1)
+		}
+
 		// TODO - check for errros - if you can't generate a signature report an error and exit.
+
 		// TODO - Generate the URL to send - the communication end point is /api/send-funds-to. It requires "from", "to", "amount", "signature", "msg", and "memo" parameters to be passed.
 		//		Example: urlStr := fmt.Sprintf("%s/api/send-funds-to", HostWithUnPw)
+
+		urlStr := fmt.Sprintf("%s/api/send-funds-to", HostWithUnPw)
+
 		// TODO - Call DoGet with the set of parameters
+
 		// convert Amount to a string
+
 		//		Example: amountStr := fmt.Sprintf("%d", Amount)
+
+		amountStr := fmt.Sprintf("%d", Amount)
+
 		// TODO make the call using DoGet to access the server.
+
 		//		Example: status, body := DoGet(urlStr, "from", *From, "to", *To, "amount", amountStr, "signature", signature, "msg", msg, "memo", *Memo)
+		status, body := DoGet(urlStr, "from", *From, "to", *To, "amount", amountStr, "signature", sig, "msg", msg, "memo", memo)
+
 		// TODO - Check the return states of the "GET" call, 200 indicates success, all other codes indicate an error
-		//		if status == 200 {
+
+		if status == 200 {
+			fmt.Printf("Body: %s\n", body)
+		} else {
+			fmt.Printf("Error: %d\n", status)
+		}
 
 	default:
 		usage()
