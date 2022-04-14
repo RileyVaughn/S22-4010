@@ -53,7 +53,9 @@ contract Vest90Days is Ownable {
 	function calculateVesting (address _anEmployee ) public onlyOwner {
 		uint256 nTokens;
 		// TODO calculate.
+		nTokens = vestedTokens(_anEmployee);
 		// TODO use address of ERC777 to transfer tokens to _anEmployee
+		
 		emit VestedTokens(_anEmployee, nTokens);
 	}
 
